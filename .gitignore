@@ -1,3 +1,4 @@
 env/
 mnist_train.csv
 kaggle.json
+__pycache__/

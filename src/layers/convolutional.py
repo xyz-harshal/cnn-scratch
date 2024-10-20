@@ -1,21 +1,5 @@
-import math
-import numpy as np
-import pandas as pd
 from tqdm import tqdm
-
-data=pd.read_csv('./mnist_train.csv')
-
-data=np.array(data)
-
-X=data[:10000,1:]
-Y=data[:10000,0]
-X=X/255
-m,n=X.shape
-X=X.reshape(m,28,28,1)
-
-print(X.shape)
-
-reluActivation=lambda A:np.maximum(0,A)
+import numpy as np
 
 class ConvLayer:
     def __init__(self,input_shape,kernel_shape):
@@ -59,46 +43,3 @@ class ConvLayer:
 
                 Z[:,i,j,:]=np.sum(A_slice[:,:,:,:,np.newaxis]*self.kernels,axis=(1,2,3))+self.bias
         return Z
-
-
-class Pooling:
-    def __init__(self,input_shape,kernel_shape):
-        self.input_shape=input_shape
-        self.kernel_shape=kernel_shape
-
-    def pool(self,A_prev,stride=1):
-        m,h,w,c=self.input_shape
-        k_h,k_w=self.kernel_shape
-
-        n_h=int((h-k_h)/stride)+1
-        n_w=int((w-k_w)/stride)+1
-        A_pool=np.zeros((m,n_h,n_w,c))
-
-        for i in tqdm(range(n_h),desc="Pooling Progress"):
-            for j in range(n_w):
-                vert_start=stride*i
-                vert_end=vert_start+k_h
-                horz_start=stride*j
-                horz_end=horz_start+k_w
-
-                A_slice=A_prev[:,vert_start:vert_end,horz_start:horz_end,:]
-                A_pool[:,i,j,:]=np.max(A_slice,axis=(1,2))
-        return A_pool
-
-
-conv_layer1=ConvLayer(X.shape,(15,15,16))
-Z1=conv_layer1.forward(X,pad=0,stride=1)
-A1=reluActivation(Z1)
-
-pool_layer1=Pooling(A1.shape,(4,4))
-P1=pool_layer1.pool(A1,stride=1)
-
-conv_layer2=ConvLayer(P1.shape,(5,5,32))
-Z2=conv_layer2.forward(P1,pad=0,stride=1)
-A2=reluActivation(Z2)
-
-pool_layer2=Pooling(A2.shape,(4,4))
-P2=pool_layer2.pool(A2,stride=1)
-
-print(P2.shape)
-
